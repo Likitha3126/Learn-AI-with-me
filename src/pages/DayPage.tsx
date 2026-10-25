@@ -332,6 +332,7 @@ function DayContent({ day }: { day: NonNullable<ReturnType<typeof getDayByNumber
             href={day.substackUrl}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label={`Read the Substack article: Day ${day.day} (opens in a new tab)`}
             className="flex items-center justify-between p-4 rounded border transition-all hover:shadow-sm"
             style={{ borderColor: 'var(--color-sage-border)', backgroundColor: 'var(--color-sage-pale)' }}
           >
@@ -339,8 +340,8 @@ function DayContent({ day }: { day: NonNullable<ReturnType<typeof getDayByNumber
               <p className="text-sm font-medium" style={{ color: 'var(--color-charcoal)' }}>
                 Day {day.day}: {day.title}
               </p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--color-sage)' }}>
-                Read full article on Substack
+              <p className="text-xs mt-0.5 font-medium" style={{ color: 'var(--color-sage)' }}>
+                Read the Substack article
               </p>
             </div>
             <ExternalLink size={15} style={{ color: 'var(--color-sage)' }} aria-hidden="true" />

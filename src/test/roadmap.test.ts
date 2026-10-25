@@ -55,6 +55,20 @@ describe('Roadmap data integrity', () => {
     })
   })
 
+  it('Day 1 is published with the official Substack article link', () => {
+    const day1 = getDayByNumber(1)
+    expect(day1?.published).toBe(true)
+    expect(day1?.substackUrl).toBe(
+      'https://likitha3126.substack.com/p/day-170-okay-im-actually-starting?r=8xcaev'
+    )
+  })
+
+  it('days 2 through 70 are not marked as published', () => {
+    roadmap.slice(1).forEach((d) => {
+      expect(d.published).toBe(false)
+    })
+  })
+
   it('getDayByNumber returns correct day', () => {
     const day1 = getDayByNumber(1)
     expect(day1).toBeDefined()

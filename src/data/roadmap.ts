@@ -85,7 +85,8 @@ export const roadmap: RoadmapDay[] = [
       { title: 'AI Engineer vs. ML Engineer vs. Data Scientist', url: 'https://www.deeplearning.ai/blog/', type: 'article' },
       { title: 'Roadmap.sh — AI Engineer Roadmap', url: 'https://roadmap.sh/ai-engineer', type: 'docs' },
     ],
-    published: false,
+    substackUrl: 'https://likitha3126.substack.com/p/day-170-okay-im-actually-starting?r=8xcaev',
+    published: true,
     lessonBody: `## What is AI Engineering?
 
 AI engineering is the discipline of building, deploying, and maintaining systems that use artificial intelligence to solve real problems. It sits at the intersection of software engineering and machine learning — but it is not the same as either.

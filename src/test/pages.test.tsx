@@ -55,7 +55,7 @@ describe('Page render tests', () => {
     expect(screen.getByText(/Why this challenge exists/i)).toBeInTheDocument()
   })
 
-  it('renders DayPage for a specific lesson', () => {
+  it('renders DayPage for Day 1 with published Substack article link', () => {
     render(
       <MemoryRouter initialEntries={['/day/1']}>
         <Routes>
@@ -66,6 +66,28 @@ describe('Page render tests', () => {
     expect(screen.getByRole('heading', { level: 1, name: /What Does an AI Engineer Actually Do\?/i })).toBeInTheDocument()
     expect(screen.getAllByText(/Day 1/i).length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText(/Personal Notes/i).length).toBeGreaterThanOrEqual(1)
+
+    // Verify Read the Substack article link
+    const substackLink = screen.getByRole('link', { name: /Read the Substack article/i })
+    expect(substackLink).toBeInTheDocument()
+    expect(substackLink).toHaveAttribute(
+      'href',
+      'https://likitha3126.substack.com/p/day-170-okay-im-actually-starting?r=8xcaev'
+    )
+    expect(substackLink).toHaveAttribute('target', '_blank')
+    expect(substackLink).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('renders DayPage for an unpublished day with "Article coming soon" notice', () => {
+    render(
+      <MemoryRouter initialEntries={['/day/2']}>
+        <Routes>
+          <Route path="/day/:dayNumber" element={<DayPage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+    expect(screen.getByText(/Article coming soon/i)).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Read the Substack article/i })).not.toBeInTheDocument()
   })
 
   it('renders NotFoundPage with navigation back home', () => {
