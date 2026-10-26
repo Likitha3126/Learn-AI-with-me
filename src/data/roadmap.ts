@@ -166,7 +166,9 @@ Writing consolidates learning. This practice alone will make the 70-day challeng
       { title: 'VS Code Python Tutorial', url: 'https://code.visualstudio.com/docs/python/python-tutorial', type: 'tutorial' },
       { title: 'Jupyter Quickstart', url: 'https://jupyter.readthedocs.io/en/latest/running.html', type: 'docs' },
     ],
-    published: false,
+    substackUrl: 'https://likitha3126.substack.com/p/before-ai-i-need-to-set-up-my-python?r=8xcaev',
+    published: true,
+
   },
   {
     day: 3,
