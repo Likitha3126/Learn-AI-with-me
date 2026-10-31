@@ -1,14 +1,21 @@
 // src/pages/SignInPage.tsx
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowRight, AlertCircle, Info, Lock, Mail } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 export function SignInPage() {
-  const { signIn, isConfigured } = useAuth()
+  const { signIn, isConfigured, user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') || '/account'
+
+  // Redirect to destination if already authenticated
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate(redirectTo, { replace: true })
+    }
+  }, [user, authLoading, navigate, redirectTo])
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

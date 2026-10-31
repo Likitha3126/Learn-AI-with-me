@@ -5,7 +5,7 @@
 // and session persistence.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import type { User, Session, AuthError } from '@supabase/supabase-js'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import type { UserProfile } from '../types/database'
@@ -34,7 +34,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState<boolean>(isSupabaseConfigured)
 
-  const fetchProfile = useCallback(async (userId: string) => {
+  // Keep a ref to the current user so fetchProfile doesn't need `user` in its
+  // dependency array. If we included `user` there, fetchProfile would be
+  // recreated on every auth-state change, which would re-trigger the effect
+  // that calls supabase.auth.onAuthStateChange — registering a new listener
+  // on every render (listener leak).
+  const userRef = useRef<User | null>(null)
+
+  const fetchProfile = useCallback(async (userId: string, userMeta?: Record<string, unknown>) => {
     if (!isSupabaseConfigured) return
     try {
       const { data, error } = await supabase
@@ -46,10 +53,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!error && data) {
         setProfile(data as UserProfile)
       } else {
-        // Fallback profile if row trigger is still executing
+        // Fallback profile if the DB trigger is still executing
         setProfile({
           id: userId,
-          display_name: user?.user_metadata?.display_name ?? null,
+          display_name: (userMeta?.display_name as string) ?? null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
@@ -57,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore
     }
-  }, [user])
+  }, []) // Stable reference — no deps that change on auth events
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -67,31 +74,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     let isMounted = true
 
-    // Initial session retrieval
+    // Initial session retrieval — runs once on mount.
+    // We set loading=true (already the initial value) and only clear it after
+    // the session is known. This prevents a flash where components assume
+    // "not authenticated" before the async check has completed.
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       if (!isMounted) return
+      const currentUser = currentSession?.user ?? null
+      userRef.current = currentUser
       setSession(currentSession)
-      setUser(currentSession?.user ?? null)
-      if (currentSession?.user) {
-        fetchProfile(currentSession.user.id)
+      setUser(currentUser)
+      if (currentUser) {
+        fetchProfile(currentUser.id, currentUser.user_metadata)
       }
       setLoading(false)
     }).catch(() => {
       if (isMounted) setLoading(false)
     })
 
-    // Listen to auth changes
+    // Listen to auth state changes — subscribed exactly once.
+    // fetchProfile is stable (no deps), so this effect only runs once.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, newSession) => {
       if (!isMounted) return
+      const newUser = newSession?.user ?? null
+      userRef.current = newUser
       setSession(newSession)
-      setUser(newSession?.user ?? null)
-      if (newSession?.user) {
-        fetchProfile(newSession.user.id)
+      setUser(newUser)
+      if (newUser) {
+        fetchProfile(newUser.id, newUser.user_metadata)
       } else {
         setProfile(null)
       }
+      // Only set loading false here if it's still true (covers race between
+      // INITIAL_SESSION event and the getSession() promise above)
       setLoading(false)
     })
 
@@ -99,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isMounted = false
       subscription.unsubscribe()
     }
-  }, [fetchProfile])
+  }, [fetchProfile]) // fetchProfile is stable — this effect runs exactly once
 
   const signUp = useCallback(
     async (email: string, password: string, displayName?: string) => {
@@ -124,12 +141,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       })
 
-      if (data.user && !error) {
-        if (data.session) {
-          setUser(data.user)
-          setSession(data.session)
-        }
-      }
+      // Do NOT manually call setUser/setSession here.
+      // onAuthStateChange fires automatically when Supabase sets the session,
+      // and doing it manually here causes a race condition double-set.
 
       return { error, user: data.user, session: data.session }
     },
@@ -146,15 +160,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
 
-    if (data.user && !error) {
-      setUser(data.user)
-      setSession(data.session)
-    }
+    // Do NOT manually call setUser/setSession here.
+    // onAuthStateChange fires on successful sign-in and handles state updates.
 
     return { error }
   }, [])
@@ -222,25 +234,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const deleteAccount = useCallback(async () => {
-    if (!user || !isSupabaseConfigured) {
+    const currentUser = userRef.current
+    if (!currentUser || !isSupabaseConfigured) {
       return { error: new Error('User not authenticated') }
     }
 
     try {
-      // In Supabase client, deleting user data cascades across user_profiles, user_day_progress, and user_day_notes
-      await supabase.from('user_profiles').delete().eq('id', user.id)
+      // Delete user_profiles row (cascades to user_day_progress and user_day_notes
+      // via ON DELETE CASCADE foreign keys defined in the migration).
+      // Note: This removes the profile data. The auth.users record itself
+      // requires a server-side admin action (service role) to delete permanently.
+      // Signing out here prevents re-login without email, but the auth record
+      // persists in Supabase Auth — a full deletion requires a Supabase Edge
+      // Function with the admin client (see README for instructions).
+      await supabase.from('user_profiles').delete().eq('id', currentUser.id)
       await signOut()
       return { error: null }
     } catch (err) {
       return { error: err as Error }
     }
-  }, [user, signOut])
+  }, [signOut])
 
   const refreshProfile = useCallback(async () => {
-    if (user) {
-      await fetchProfile(user.id)
+    const currentUser = userRef.current
+    if (currentUser) {
+      await fetchProfile(currentUser.id, currentUser.user_metadata)
     }
-  }, [user, fetchProfile])
+  }, [fetchProfile])
 
   const value = useMemo(
     () => ({

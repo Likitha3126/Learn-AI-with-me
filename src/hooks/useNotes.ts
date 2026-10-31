@@ -114,18 +114,11 @@ export function useNotes(day: number) {
     }
   }, [day, user])
 
-  // Track unsaved state when editing
-  useEffect(() => {
-    if (content !== savedContent) {
-      setSaveStatus('unsaved')
-    } else {
-      setSaveStatus('saved')
-    }
-  }, [content, savedContent])
-
   const updateContent = useCallback((value: string) => {
     setContent(value)
-  }, [])
+    // Instantly preserve draft to localStorage so nothing is lost even on abrupt tab close
+    saveLocalNote(day, value)
+  }, [day])
 
   // Save notes handler (explicit or debounced)
   const saveNotes = useCallback(async () => {
@@ -178,6 +171,32 @@ export function useNotes(day: number) {
       setLastSavedAt(new Date())
     }
   }, [day, content, user])
+
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Track unsaved state and trigger debounced auto-save (1.5s after typing pauses)
+  useEffect(() => {
+    if (content === savedContent) {
+      setSaveStatus('saved')
+      return
+    }
+
+    setSaveStatus('unsaved')
+
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current)
+    }
+
+    autoSaveTimerRef.current = setTimeout(() => {
+      saveNotes()
+    }, 1500)
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current)
+      }
+    }
+  }, [content, savedContent, saveNotes])
 
   const clearNotes = useCallback(async () => {
     setContent('')

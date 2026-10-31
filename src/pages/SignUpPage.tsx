@@ -5,7 +5,7 @@ import { ArrowRight, AlertCircle, Info, Lock, Mail, User as UserIcon, Check, Ref
 import { useAuth } from '../contexts/AuthContext'
 
 export function SignUpPage() {
-  const { signUp, resendVerificationEmail, isConfigured } = useAuth()
+  const { signUp, resendVerificationEmail, isConfigured, user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') || '/account'
@@ -16,6 +16,13 @@ export function SignUpPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [confirmationSent, setConfirmationSent] = useState(false)
+
+  // Redirect to destination if already authenticated
+  useEffect(() => {
+    if (!authLoading && user && !confirmationSent) {
+      navigate(redirectTo, { replace: true })
+    }
+  }, [user, authLoading, confirmationSent, navigate, redirectTo])
 
   // Resend confirmation email state
   const [resending, setResending] = useState(false)

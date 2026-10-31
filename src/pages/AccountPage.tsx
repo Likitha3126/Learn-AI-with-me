@@ -11,7 +11,7 @@ import { ProgressBar } from '../components/ProgressBar'
 import { inspectLocalData, migrateLocalDataToCloud } from '../lib/migration'
 
 export function AccountPage() {
-  const { user, profile, signOut, deleteAccount } = useAuth()
+  const { user, profile, signOut, deleteAccount, loading: authLoading } = useAuth()
   const { completedDays, inProgressDays, percentage, totalDays, isCloud, syncState } = useProgress()
   const navigate = useNavigate()
 
@@ -23,6 +23,17 @@ export function AccountPage() {
   const [syncMessage, setSyncMessage] = useState<string | null>(null)
 
   const localSummary = inspectLocalData()
+
+  if (authLoading) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-24 text-center">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-solid border-[color:var(--color-sage)] border-r-transparent mb-4" />
+        <p className="text-sm font-medium" style={{ color: 'var(--color-charcoal-muted)' }}>
+          Loading account details…
+        </p>
+      </div>
+    )
+  }
 
   if (!user) {
     return (

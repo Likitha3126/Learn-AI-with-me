@@ -67,6 +67,39 @@ function fromDbStatus(status: string): DayStatus {
   return 'completed'
 }
 
+const PROGRESS_UPDATE_EVENT = 'learn-ai-progress-updated'
+
+function broadcastProgressUpdate(state: ProgressState) {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(PROGRESS_UPDATE_EVENT, { detail: state }))
+  }
+}
+
+// Module-level deduplication cache so multiple hook instances (Layout, Page, Cards)
+// don't fire duplicate parallel requests to Supabase.
+let cloudCacheUserId: string | null = null
+let cloudCacheData: Record<number, DayProgress> | null = null
+let inFlightCloudFetch: Promise<Record<number, DayProgress> | null> | null = null
+
+async function fetchCloudData(userId: string): Promise<Record<number, DayProgress>> {
+  const { data, error } = await supabase
+    .from('user_day_progress')
+    .select('*')
+    .eq('user_id', userId)
+
+  if (error) throw error
+  const cloudDays: Record<number, DayProgress> = {}
+  if (data) {
+    data.forEach((row: UserDayProgress) => {
+      cloudDays[row.day_number] = {
+        status: fromDbStatus(row.status),
+        completedTasks: Array.isArray(row.completed_tasks) ? row.completed_tasks : [],
+      }
+    })
+  }
+  return cloudDays
+}
+
 export function useProgress() {
   const { user } = useAuth()
   const [progress, setProgress] = useState<ProgressState>(loadLocalProgress)
@@ -77,11 +110,44 @@ export function useProgress() {
   // Track pending save timers per day to debounce rapid clicks
   const saveDebounceTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({})
 
-  // Fetch progress from Supabase when user logs in
+  // Listen for updates from other hook instances (e.g. DayPage updating Layout navbar)
+  useEffect(() => {
+    const handleCustomUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<ProgressState>
+      if (customEvent.detail) {
+        setProgress(customEvent.detail)
+      }
+    }
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === LOCAL_STORAGE_KEY && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue)
+          if (parsed && parsed.days) {
+            setProgress(parsed)
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    window.addEventListener(PROGRESS_UPDATE_EVENT, handleCustomUpdate)
+    window.addEventListener('storage', handleStorage)
+    return () => {
+      window.removeEventListener(PROGRESS_UPDATE_EVENT, handleCustomUpdate)
+      window.removeEventListener('storage', handleStorage)
+    }
+  }, [])
+
+  // Fetch progress from Supabase when user logs in (deduplicated across instances)
   useEffect(() => {
     if (!user || !isSupabaseConfigured) {
       // Guest mode: load from localStorage
-      setProgress(loadLocalProgress())
+      cloudCacheUserId = null
+      cloudCacheData = null
+      inFlightCloudFetch = null
+      const local = loadLocalProgress()
+      setProgress(local)
       setLoading(false)
       setSyncState('idle')
       return
@@ -91,27 +157,34 @@ export function useProgress() {
     setLoading(true)
 
     async function fetchCloudProgress() {
-      try {
-        const { data, error } = await supabase
-          .from('user_day_progress')
-          .select('*')
-          .eq('user_id', user!.id)
-
+      // Check in-memory cache first
+      if (cloudCacheData && cloudCacheUserId === user!.id) {
         if (!isMounted) return
+        setProgress({ days: cloudCacheData, lastUpdated: new Date().toISOString() })
+        setLoading(false)
+        setSyncState('synced')
+        return
+      }
 
-        if (error) {
-          setErrorMessage(error.message)
-          setSyncState('error')
-          // Fallback to local
-          setProgress(loadLocalProgress())
-        } else if (data) {
-          const cloudDays: Record<number, DayProgress> = {}
-          data.forEach((row: UserDayProgress) => {
-            cloudDays[row.day_number] = {
-              status: fromDbStatus(row.status),
-              completedTasks: Array.isArray(row.completed_tasks) ? row.completed_tasks : [],
-            }
+      // Deduplicate parallel in-flight queries
+      if (!inFlightCloudFetch) {
+        inFlightCloudFetch = fetchCloudData(user!.id)
+          .then((cloudDays) => {
+            inFlightCloudFetch = null
+            cloudCacheUserId = user!.id
+            cloudCacheData = cloudDays
+            return cloudDays
           })
+          .catch((err: unknown) => {
+            inFlightCloudFetch = null
+            throw err
+          })
+      }
+
+      try {
+        const cloudDays = await inFlightCloudFetch
+        if (!isMounted) return
+        if (cloudDays) {
           setProgress({
             days: cloudDays,
             lastUpdated: new Date().toISOString(),
@@ -122,6 +195,7 @@ export function useProgress() {
         if (!isMounted) return
         setErrorMessage(err instanceof Error ? err.message : 'Failed to fetch progress')
         setSyncState('error')
+        setProgress(loadLocalProgress())
       } finally {
         if (isMounted) setLoading(false)
       }
@@ -218,6 +292,7 @@ export function useProgress() {
         }
 
         queueDayPersist(day, updated)
+        broadcastProgressUpdate(newState)
         return newState
       })
     },
@@ -241,6 +316,7 @@ export function useProgress() {
         }
 
         queueDayPersist(day, updated)
+        broadcastProgressUpdate(newState)
         return newState
       })
     },
@@ -250,6 +326,8 @@ export function useProgress() {
   const resetProgress = useCallback(async () => {
     const fresh = defaultProgress()
     setProgress(fresh)
+    broadcastProgressUpdate(fresh)
+    cloudCacheData = {}
 
     if (user && isSupabaseConfigured) {
       setSyncState('syncing')

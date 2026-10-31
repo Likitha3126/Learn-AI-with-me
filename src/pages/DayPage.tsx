@@ -208,38 +208,39 @@ function DayContent({ day }: { day: NonNullable<ReturnType<typeof getDayByNumber
             return (
               <li
                 key={i}
-                className="flex items-start gap-3 p-3 rounded border transition-colors cursor-pointer"
+                role="checkbox"
+                aria-checked={done}
+                tabIndex={0}
+                aria-label={`Task ${i + 1}: ${task}`}
+                className="flex items-start gap-3 p-3 rounded border transition-colors cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-[color:var(--color-sage)]"
                 style={{
                   borderColor: done ? 'var(--color-sage-border)' : 'var(--color-ivory-border)',
                   backgroundColor: done ? 'var(--color-sage-pale)' : 'white',
                 }}
                 onClick={() => toggleTask(day.day, i)}
+                onKeyDown={(e) => {
+                  if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault()
+                    toggleTask(day.day, i)
+                  }
+                }}
               >
-                <label className="flex items-start gap-3 cursor-pointer w-full">
-                  <button
-                    type="button"
-                    role="checkbox"
-                    aria-checked={done}
-                    aria-label={`Task ${i + 1}: ${task}`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      toggleTask(day.day, i)
-                    }}
-                    className="flex-shrink-0 mt-0.5 transition-colors focus:outline-none"
-                    style={{ color: done ? 'var(--color-sage)' : 'var(--color-text-tertiary)' }}
-                  >
-                    {done ? <CheckSquare size={18} /> : <Square size={18} />}
-                  </button>
-                  <span
-                    className="text-sm leading-relaxed transition-colors"
-                    style={{
-                      color: done ? 'var(--color-text-tertiary)' : 'var(--color-charcoal-muted)',
-                      textDecoration: done ? 'line-through' : 'none',
-                    }}
-                  >
-                    {task}
-                  </span>
-                </label>
+                <span
+                  className="flex-shrink-0 mt-0.5 transition-colors"
+                  style={{ color: done ? 'var(--color-sage)' : 'var(--color-text-tertiary)' }}
+                  aria-hidden="true"
+                >
+                  {done ? <CheckSquare size={18} /> : <Square size={18} />}
+                </span>
+                <span
+                  className="text-sm leading-relaxed transition-colors flex-1"
+                  style={{
+                    color: done ? 'var(--color-text-tertiary)' : 'var(--color-charcoal-muted)',
+                    textDecoration: done ? 'line-through' : 'none',
+                  }}
+                >
+                  {task}
+                </span>
               </li>
             )
           })}

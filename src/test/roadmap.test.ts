@@ -63,8 +63,10 @@ describe('Roadmap data integrity', () => {
     )
   })
 
-  it('days 2 through 70 are not marked as published', () => {
-    roadmap.slice(1).forEach((d) => {
+  it('days 4 through 70 are not marked as published', () => {
+    // Days 1, 2, and 3 are currently published. This test ensures no day
+    // beyond the intentionally published set is accidentally marked published.
+    roadmap.slice(3).forEach((d) => {
       expect(d.published).toBe(false)
     })
   })

@@ -31,7 +31,7 @@ function NavItem({ to, children }: { to: string; children: React.ReactNode }) {
 export function Layout({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const { percentage, completedDays } = useProgress()
-  const { user, profile } = useAuth()
+  const { user, profile, loading: authLoading } = useAuth()
   const location = useLocation()
 
   // Close menu on route change
@@ -102,7 +102,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </Link>
 
               {/* Auth button */}
-              {user ? (
+              {authLoading ? (
+                <div
+                  className="h-7 w-20 rounded animate-pulse"
+                  style={{ backgroundColor: 'var(--color-ivory-dark)' }}
+                  aria-hidden="true"
+                />
+              ) : user ? (
                 <Link
                   to="/account"
                   className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded border transition-colors hover:shadow-sm"
@@ -173,7 +179,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
             ))}
 
             <div className="pt-2 border-t" style={{ borderColor: 'var(--color-ivory-border)' }}>
-              {user ? (
+              {authLoading ? (
+                <div
+                  className="h-9 w-full rounded animate-pulse"
+                  style={{ backgroundColor: 'var(--color-ivory-dark)' }}
+                  aria-hidden="true"
+                />
+              ) : user ? (
                 <Link
                   to="/account"
                   className="flex items-center gap-2.5 px-3 py-2 rounded text-sm font-medium bg-white text-[color:var(--color-charcoal)] border"

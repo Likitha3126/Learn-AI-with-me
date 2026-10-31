@@ -198,7 +198,7 @@ Writing consolidates learning. This practice alone will make the 70-day challeng
       { title: 'Python Official Tutorial — Data Structures', url: 'https://docs.python.org/3/tutorial/datastructures.html', type: 'docs' },
       { title: 'Real Python — Strings and Character Data', url: 'https://realpython.com/python-strings/', type: 'tutorial' },
     ],
-    substackUrl: '[https://substack.com/@likitha3126/note/p-222683362?utm_source=notes-share-action&r=8xcaev](https://substack.com/@likitha3126/note/p-222683362?utm_source=notes-share-action\&r=8xcaev)',
+    substackUrl: 'https://substack.com/@likitha3126/note/p-222683362?utm_source=notes-share-action&r=8xcaev',
     published: true,
   },
   {

@@ -80,7 +80,7 @@ describe('Page render tests', () => {
 
   it('renders DayPage for an unpublished day with "Article coming soon" notice', () => {
     render(
-      <MemoryRouter initialEntries={['/day/2']}>
+      <MemoryRouter initialEntries={['/day/4']}>
         <Routes>
           <Route path="/day/:dayNumber" element={<DayPage />} />
         </Routes>
