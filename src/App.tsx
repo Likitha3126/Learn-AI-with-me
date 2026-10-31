@@ -9,6 +9,7 @@ import { ProjectsPage } from './pages/ProjectsPage'
 import { AboutPage } from './pages/AboutPage'
 import { SignInPage } from './pages/SignInPage'
 import { SignUpPage } from './pages/SignUpPage'
+import { AuthCallbackPage } from './pages/AuthCallbackPage'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { AccountPage } from './pages/AccountPage'
@@ -73,6 +74,14 @@ function App() {
             element={
               <Layout>
                 <SignUpPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/auth/callback"
+            element={
+              <Layout>
+                <AuthCallbackPage />
               </Layout>
             }
           />

@@ -18,6 +18,7 @@ interface AuthContextType {
   isConfigured: boolean
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: AuthError | null; user: User | null; session: Session | null }>
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
+  signInWithOtp: (email: string, options?: { redirectTo?: string; shouldCreateUser?: boolean }) => Promise<{ error: AuthError | null }>
   signOut: () => Promise<void>
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>
   updatePassword: (newPassword: string) => Promise<{ error: AuthError | null }>
@@ -171,6 +172,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error }
   }, [])
 
+  const signInWithOtp = useCallback(
+    async (
+      email: string,
+      options?: { redirectTo?: string; shouldCreateUser?: boolean }
+    ) => {
+      if (!isSupabaseConfigured) {
+        return {
+          error: {
+            name: 'ConfigurationError',
+            message: 'Supabase credentials are not configured in environment variables.',
+          } as AuthError,
+        }
+      }
+
+      // Configure the redirect URL dynamically using current application origin
+      const targetDestination = options?.redirectTo || '/account'
+      const redirectUrl = `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(
+        targetDestination
+      )}`
+
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim().toLowerCase(),
+        options: {
+          emailRedirectTo: redirectUrl,
+          // Prevent accidental duplicate account creations from the sign-in page
+          shouldCreateUser: options?.shouldCreateUser ?? false,
+        },
+      })
+
+      return { error }
+    },
+    []
+  )
+
   const signOut = useCallback(async () => {
     if (isSupabaseConfigured) {
       await supabase.auth.signOut()
@@ -271,6 +306,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isConfigured: isSupabaseConfigured,
       signUp,
       signIn,
+      signInWithOtp,
       signOut,
       resetPassword,
       updatePassword,
@@ -285,6 +321,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       signUp,
       signIn,
+      signInWithOtp,
       signOut,
       resetPassword,
       updatePassword,
@@ -305,6 +342,7 @@ const defaultAuthContext: AuthContextType = {
   isConfigured: false,
   signUp: async () => ({ error: null, user: null, session: null }),
   signIn: async () => ({ error: null }),
+  signInWithOtp: async () => ({ error: null }),
   signOut: async () => {},
   resetPassword: async () => ({ error: null }),
   updatePassword: async () => ({ error: null }),
