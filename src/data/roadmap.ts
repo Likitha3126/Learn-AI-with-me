@@ -229,7 +229,8 @@ Writing consolidates learning. This practice alone will make the 70-day challeng
       { title: 'Python Docs — Modules', url: 'https://docs.python.org/3/tutorial/modules.html', type: 'docs' },
       { title: 'Real Python — Type Hints', url: 'https://realpython.com/python-type-checking/', type: 'tutorial' },
     ],
-    published: false,
+    substackUrl:'https://likitha3126.substack.com/p/day-470-python-functions-finally?r=8xcaev&utm_campaign=post-expanded-share&utm_medium=web',
+    published: true,
   },
   {
     day: 5,
