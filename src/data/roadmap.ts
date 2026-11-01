@@ -260,7 +260,8 @@ Writing consolidates learning. This practice alone will make the 70-day challeng
       { title: 'Python Docs — Reading and Writing Files', url: 'https://docs.python.org/3/tutorial/inputoutput.html#reading-and-writing-files', type: 'docs' },
       { title: 'VS Code Python Debugging', url: 'https://code.visualstudio.com/docs/python/debugging', type: 'tutorial' },
     ],
-    published: false,
+    substackUrl:'https://likitha3126.substack.com/p/day-570-python-needs-to-know-how?r=8xcaev',
+    published: true,
   },
   {
     day: 6,
