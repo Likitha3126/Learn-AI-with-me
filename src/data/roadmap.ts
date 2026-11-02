@@ -291,7 +291,8 @@ Writing consolidates learning. This practice alone will make the 70-day challeng
       { title: 'Python Docs — Classes', url: 'https://docs.python.org/3/tutorial/classes.html', type: 'docs' },
       { title: 'Real Python — OOP in Python', url: 'https://realpython.com/python3-object-oriented-programming/', type: 'tutorial' },
     ],
-    published: false,
+    substackUrl:'https://likitha3126.substack.com/p/day-670-object-oriented-programming?r=8xcaev&utm_campaign=post-expanded-share&utm_medium=web',
+    published: true,
   },
   {
     day: 7,
