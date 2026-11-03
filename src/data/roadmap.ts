@@ -323,7 +323,8 @@ Writing consolidates learning. This practice alone will make the 70-day challeng
       { title: 'GitHub Quickstart', url: 'https://docs.github.com/en/get-started/quickstart', type: 'tutorial' },
       { title: 'How to Write a Good README', url: 'https://www.makeareadme.com/', type: 'tutorial' },
     ],
-    published: false,
+    substackUrl:"https://likitha3126.substack.com/p/day-770-git-and-github-for-beginners?r=8xcaev&utm_campaign=post&utm_medium=web&showWelcomeOnShare=true",
+    published: true,
   },
 
   // ──────────────────────────────────────────────────────────────────────────
