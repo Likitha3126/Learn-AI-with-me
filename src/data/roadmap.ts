@@ -357,7 +357,8 @@ Writing consolidates learning. This practice alone will make the 70-day challeng
       { title: 'NumPy Official Docs', url: 'https://numpy.org/doc/stable/', type: 'docs' },
       { title: 'NumPy Quickstart Tutorial', url: 'https://numpy.org/doc/stable/user/quickstart.html', type: 'tutorial' },
     ],
-    published: false,
+    substackUrl:'https://likitha3126.substack.com/p/day-870-numpy-for-beginners-understanding?r=8xcaev&utm_campaign=post-expanded-share&utm_medium=web',
+    published: true,
   },
   {
     day: 9,
