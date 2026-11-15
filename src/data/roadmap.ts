@@ -387,7 +387,8 @@ Writing consolidates learning. This practice alone will make the 70-day challeng
       { title: 'NumPy Indexing', url: 'https://numpy.org/doc/stable/user/basics.indexing.html', type: 'docs' },
       { title: 'NumPy Broadcasting', url: 'https://numpy.org/doc/stable/user/basics.broadcasting.html', type: 'docs' },
     ],
-    published: false,
+    substackUrl:'https://likitha3126.substack.com/p/day-970-numpy-array-manipulation?r=8xcaev&utm_campaign=post-expanded-share&utm_medium=web',
+    published: true,
   },
   {
     day: 10,
