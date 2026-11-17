@@ -417,7 +417,8 @@ Writing consolidates learning. This practice alone will make the 70-day challeng
       { title: 'Pandas Getting Started', url: 'https://pandas.pydata.org/docs/getting_started/index.html', type: 'docs' },
       { title: 'Pandas User Guide', url: 'https://pandas.pydata.org/docs/user_guide/index.html', type: 'docs' },
     ],
-    published: false,
+    substackUrl:"https://likitha3126.substack.com/p/day-1070-pandas-for-beginners-a-complete?r=8xcaev&utm_campaign=post&utm_medium=web&showWelcomeOnShare=true",
+    published: true,
   },
   {
     day: 11,
