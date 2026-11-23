@@ -447,7 +447,8 @@ Writing consolidates learning. This practice alone will make the 70-day challeng
       { title: 'Pandas — Working with Missing Data', url: 'https://pandas.pydata.org/docs/user_guide/missing_data.html', type: 'docs' },
       { title: 'Kaggle — Data Cleaning Course', url: 'https://www.kaggle.com/learn/data-cleaning', type: 'tutorial' },
     ],
-    published: false,
+    substackUrl:"https://likitha3126.substack.com/p/day-1170-data-cleaning-with-pandas?r=8xcaev&utm_campaign=post-expanded-share&utm_medium=web",
+    published: true,
   },
   {
     day: 12,
