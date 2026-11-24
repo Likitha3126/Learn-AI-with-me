@@ -476,7 +476,8 @@ Writing consolidates learning. This practice alone will make the 70-day challeng
     resources: [
       { title: 'Pandas — Exploratory Data Analysis', url: 'https://pandas.pydata.org/docs/getting_started/intro_tutorials/06_calculate_statistics.html', type: 'docs' },
     ],
-    published: false,
+    substackUrl:"https://likitha3126.substack.com/p/exploratory-data-analysis-eda-the?r=8xcaev&utm_campaign=post-expanded-share&utm_medium=web",
+    published: true,
   },
   {
     day: 13,
